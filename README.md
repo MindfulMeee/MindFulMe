@@ -13,7 +13,7 @@ TDD의 원칙을 철저히 따르며, 각 기능을 구현하기 전에 테스�
 - 사용자 조회 및 검색
 
 ## 기술 스택
-- Backend: Java 17, Spring Boot 
+- Backend: Java 17, Spring Boot
 - Database: MySQL
 - Testing: JUnit 5, Mockito
 - Build Tool: Gradle

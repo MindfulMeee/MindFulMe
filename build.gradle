@@ -1,0 +1,108 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.node-gradle.node' version '3.5.1'
+}
+group = 'com.team'
+version = '0.0.1-SNAPSHOT'
+
+def querydslVersion = '5.0.0'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	// Spring Boot 스타터
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// 템플릿 엔진
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+	// 데이터베이스
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.h2database:h2'
+
+	// QueryDSL
+	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// 유틸리티 및 도구
+	implementation 'org.modelmapper:modelmapper:3.1.1'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// 테스트
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.mockito:mockito-core:5.8.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+	testImplementation 'org.assertj:assertj-core:3.24.2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+node {
+	version = '16.13.0'
+	npmVersion = '8.1.0'
+	download = true
+	workDir = file("${project.buildDir}/nodejs")
+	npmWorkDir = file("${project.buildDir}/npm")
+	nodeModulesDir = file("${project.projectDir}/src/main/frontend")
+}
+
+
+npmInstall {
+	workingDir = file("${project.projectDir}/src/main/frontend")
+	args = ['install']
+}
+
+// npmBuild 태스크를 새로 정의
+tasks.register('npmBuild', NpmTask) {
+	description = "npm build 실행"
+	workingDir = file("${project.projectDir}/src/main/frontend")
+	args = ['run', 'build']
+	dependsOn npmInstall
+}
+
+// 빌드된 React 앱을 static 폴더로 복사
+tasks.register('copyReactBuild', Copy) {
+	from "${project.projectDir}/src/main/frontend/build"
+	into "${project.buildDir}/resources/main/static"
+	dependsOn npmBuild
+}
+
+// Spring Boot jar 패키징 전에 React 빌드 실행
+bootJar {
+	dependsOn copyReactBuild
+}
+
+// 개발 시 Spring Boot 앱 실행 전에 React 빌드 실행
+bootRun {
+	dependsOn copyReactBuild
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

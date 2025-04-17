@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: mindful
+  datasource:
+    url: jdbc:h2:mem:mindfuldb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        highlight_sql: true
+        # SQL 바인딩 파라미터 표시
+        type: trace
+  sql:
+    init:
+      mode: never
+
+# 로깅 설정
+logging:
+  level:
+    org.hibernate.SQL: DEBUG  # SQL 쿼리 로깅
+    org.hibernate.type.descriptor.sql: TRACE  # SQL 파라미터 바인딩 로깅
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 파라미터 값 로깅
+    org.springframework: INFO
+    org.springframework.transaction: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.hibernate.engine.transaction: DEBUG
+    com.zaxxer.hikari: DEBUG  # 커넥션 풀 로깅
+    # 애플리케이션 패키지 로깅 (프로젝트 패키지명에 맞게 수정)
+    com.example.mindful: DEBUG
